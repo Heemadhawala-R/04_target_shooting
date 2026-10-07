@@ -17,9 +17,13 @@ Task 3:
 - Combo multiplier increases with consecutive hits
 - A miss resets the combo
 
+- Task 4: 30-second timed rounds
+
+
 """
 
 import random
+import time
 
 from game.target import Target
 from game.hit_detection import check_hit
@@ -27,10 +31,16 @@ from game.renderer import WIDTH, HEIGHT
 
 NUM_TARGETS = 3
 TARGET_RADIUS = 28
+ROUND_DURATION = 30
 
 
 class GameEngine:
     def __init__(self):
+        self.start_round()
+
+    def start_round(self):
+        """Start or restart a 30-second round."""
+
         self.targets = [
             self._random_target(0),
             self._random_target(1),
@@ -40,9 +50,12 @@ class GameEngine:
         self.hits = 0
         self.misses = 0
 
-        # Task 3: scoring and combo
         self.score = 0
         self.combo = 0
+
+        self.start_time = time.time()
+        self.time_left = ROUND_DURATION
+        self.round_over = False
 
     def _random_target(self, movement_type=None):
         x = random.randint(
@@ -58,7 +71,6 @@ class GameEngine:
         if movement_type is None:
             movement_type = random.randint(0, 2)
 
-        # Different movement speeds/patterns
         if movement_type == 0:
             speed_x = 2
             speed_y = 1
@@ -80,6 +92,12 @@ class GameEngine:
         )
 
     def handle_click(self, pos):
+        """Handle a click only while the round is active."""
+
+        # Don't accept clicks after the round ends
+        if self.round_over:
+            return
+
         target = check_hit(self.targets, pos)
 
         if target is not None:
@@ -94,13 +112,23 @@ class GameEngine:
             self.targets.append(self._random_target())
 
         else:
-            
             self.misses += 1
 
             self.combo = 0
 
     def update(self):
-        """Move all targets."""
+        """Update timer and target movement."""
+
+        if self.round_over:
+            return
+
+        elapsed = time.time() - self.start_time
+        self.time_left = max(0, ROUND_DURATION - int(elapsed))
+
+        if self.time_left <= 0:
+            self.time_left = 0
+            self.round_over = True
+            return
 
         for target in self.targets:
             target.update(WIDTH, HEIGHT)
@@ -113,20 +141,34 @@ class GameEngine:
         renderer.draw_text(
             surface,
             font,
-            f"Score: {self.score}",
+            f"Time: {self.time_left}",
             (10, 10)
         )
 
         renderer.draw_text(
             surface,
             font,
-            f"Combo: x{self.combo}",
+            f"Score: {self.score}",
             (10, 35)
         )
 
         renderer.draw_text(
             surface,
             font,
-            f"Hits: {self.hits}  Misses: {self.misses}",
+            f"Combo: x{self.combo}",
             (10, 60)
         )
+
+        renderer.draw_text(
+            surface,
+            font,
+            f"Hits: {self.hits}  Misses: {self.misses}",
+            (10, 85)
+        )
+
+        if self.round_over:
+            renderer.draw_banner(
+                surface,
+                font,
+                f"ROUND OVER! Score: {self.score} | Press R to Restart"
+            )

@@ -14,19 +14,29 @@ from game.renderer import WINDOW_SIZE
 
 def main():
     pygame.init()
+
     screen = pygame.display.set_mode(WINDOW_SIZE)
     pygame.display.set_caption("Target Shooting")
+
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("consolas", 22)
 
     engine = GameEngine()
+
     running = True
+
     while running:
         for event in pygame.event.get():
+
             if event.type == pygame.QUIT:
                 running = False
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 engine.handle_click(event.pos)
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r and engine.round_over:
+                    engine.start_round()
 
         engine.update()
         engine.draw(screen, font)

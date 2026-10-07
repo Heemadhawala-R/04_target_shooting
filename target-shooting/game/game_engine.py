@@ -11,6 +11,12 @@ Task 2:
 - Targets move continuously
 - Targets have different movement speeds/patterns
 - Targets bounce off the edges
+
+Task 3:
+- Score increases with consecutive hits
+- Combo multiplier increases with consecutive hits
+- A miss resets the combo
+
 """
 
 import random
@@ -33,6 +39,10 @@ class GameEngine:
 
         self.hits = 0
         self.misses = 0
+
+        # Task 3: scoring and combo
+        self.score = 0
+        self.combo = 0
 
     def _random_target(self, movement_type=None):
         x = random.randint(
@@ -75,13 +85,19 @@ class GameEngine:
         if target is not None:
             self.hits += 1
 
+            self.combo += 1
+
+            self.score += 10 * self.combo
+
             self.targets.remove(target)
 
-            # Create a new moving target
             self.targets.append(self._random_target())
 
         else:
+            
             self.misses += 1
+
+            self.combo = 0
 
     def update(self):
         """Move all targets."""
@@ -97,6 +113,20 @@ class GameEngine:
         renderer.draw_text(
             surface,
             font,
-            f"Hits: {self.hits}  Misses: {self.misses}",
+            f"Score: {self.score}",
             (10, 10)
+        )
+
+        renderer.draw_text(
+            surface,
+            font,
+            f"Combo: x{self.combo}",
+            (10, 35)
+        )
+
+        renderer.draw_text(
+            surface,
+            font,
+            f"Hits: {self.hits}  Misses: {self.misses}",
+            (10, 60)
         )

@@ -8,8 +8,15 @@ def check_hit(targets, click_pos):
     Returns the target that was clicked, or None if the click missed
     every target.
     """
+
+    click_x, click_y = click_pos
+
     for target in targets:
-        rect = target.get_bounding_rect()
-        if rect.collidepoint(click_pos):
+        dx = click_x - target.x
+        dy = click_y - target.y
+
+        distance_squared = dx * dx + dy * dy
+        if distance_squared <= target.radius * target.radius:
             return target
+
     return None
